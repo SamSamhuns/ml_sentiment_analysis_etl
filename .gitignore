@@ -126,3 +126,6 @@ dmypy.json
 
 # Mac OS system files
 *.DS_Store
+
+# Secret configuration file
+configuration_secret.ini
