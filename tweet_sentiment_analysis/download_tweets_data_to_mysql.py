@@ -193,7 +193,7 @@ def main():
     # Choose the appropriate download mode based on user arguments
     if argparse_obj.download_type == 'keyword':
         download_tweets_by_keyword(api, tracking_filters)
-    elif argparse_obj.download_type == 'keyword':
+    elif argparse_obj.download_type == 'userid':
         download_tweets_by_user_id(api, tracking_filters)
 
 
