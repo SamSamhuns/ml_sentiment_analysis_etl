@@ -128,4 +128,4 @@ dmypy.json
 *.DS_Store
 
 # Secret configuration file
-configuration_secret.ini
+twitter_configuration_secret.ini
