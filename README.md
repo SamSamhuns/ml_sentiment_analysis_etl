@@ -1,19 +1,35 @@
-# Data pipeline for sentiment analysis of Twitter feeds
+# Extract Transform Load Data Pipelines for sentiment analysis
 
-A data pipeline project to download tweets with twitter api, load in an MySQL db, and analyze tweet sentiments all in an ETL pipeline.
+-   [Twitter feed ETL sentiment analysis based on keyword search.](#data-pipeline-for-sentiment-analysis-of-twitter-feeds)
+-   [IMDB movie critic review sentiment analysis based on movie genre.](#etl-pipeline-for-analysis-of-imdb-movie-critic-reviews)
 
-## Requirements
+## General setup
+
+-   Make sure Python is installed and set up a Python virtualenv. Install all dependencies from `requirements.txt`.
+
+```shell
+$ pip install virtualenv
+$ virtualenv venv/bin/activate
+$ source venv/bin/activate
+$ pip install -r requirements.txt
+```
+
+## ETL pipeline for sentiment analysis of Twitter feeds
+
+Download tweets with twitter api, load in an MySQL db, and analyze tweet sentiments all in an ETL pipeline.
+
+### Requirements
 
 -   Twitter account and API credentials (Access Token from a Twitter app)
 -   MySQL database server
 
-## Setup
+### Setup
 
--   Add the required `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET` and `MYSQL_PASSWORD` to the `configuration.ini` file. (**Warning: `DO NOT UPLOAD YOUR CONFIGURATION FILES ONLINE`**)
+-   Add the required `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET` and `MYSQL_PASSWORD` to the `tweet_sentiment_analysis/configuration.ini` file. (**Warning: `DO NOT UPLOAD THIS CONFIGURATION FILES ONLINE`**)
 
 -   Install MySQL server and set up a database instance to store the downloaded tweets. For example `CREATE DATABASE twitter_db;`
 
--   Based on the [Twitter documentation](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/intro-to-tweet-json) online, we create a TABLE with the following sample schema in `TWEETS_schema.sql`:
+-   Based on the [Twitter documentation](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/intro-to-tweet-json) online, we create a TABLE with the following sample schema present in `TWEETS_schema.sql`:
 
 ```sql
 CREATE TABLE TWEETS (
@@ -34,8 +50,21 @@ CREATE TABLE TWEETS (
 );
 ```
 
--   The creation command can loaded into `twitterdb` using `mysql -u root -p twitter_db < TWEETS_schema.sql`.
+-   The table creation SQL command can loaded into `twitterdb` using:
 
+```shell
+$ mysql -u root -p twitter_db < TWEETS_schema.sql;
+```
+
+### Run
+
+## ETL pipeline for analysis of IMDB movie critic reviews
+
+### Requirements
+
+### Setup
+
+### Run
 
 #### Acknowledgements
 
