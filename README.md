@@ -1,6 +1,6 @@
 # Extract Transform Load Data Pipelines for sentiment analysis
 
-<img src='img/etl_headline.jpg' />
+<div style="text-align:center"><img src='img/etl_headline.jpg' height='250' /></div>
 
 -   [Twitter feed ETL sentiment analysis based on keyword search.](#data-pipeline-for-sentiment-analysis-of-twitter-feeds)
 -   [IMDB movie description sentiment analysis based on movie genre.](#etl-pipeline-for-analysis-of-imdb-movie-descriptions)
