@@ -1,7 +1,7 @@
 # Extract Transform Load Data Pipelines for sentiment analysis
 
 -   [Twitter feed ETL sentiment analysis based on keyword search.](#data-pipeline-for-sentiment-analysis-of-twitter-feeds)
--   [IMDB movie critic review sentiment analysis based on movie genre.](#etl-pipeline-for-analysis-of-imdb-movie-critic-reviews)
+-   [IMDB movie description sentiment analysis based on movie genre.](#etl-pipeline-for-analysis-of-imdb-movie-descriptions)
 
 ## General setup
 
@@ -14,7 +14,7 @@ $ source venv/bin/activate
 $ pip install -r requirements.txt
 ```
 
-## ETL pipeline for sentiment analysis of Twitter feeds
+## ETL pipeline for sentiment analysis of Twitter feeds based on keywords or user ids
 
 Download tweets with twitter api, load in an MySQL db, and analyze tweet sentiments all in an ETL pipeline.
 
@@ -25,11 +25,11 @@ Download tweets with twitter api, load in an MySQL db, and analyze tweet sentime
 
 ### Setup
 
--   Add the required `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET` and `MYSQL_PASSWORD` to the `tweet_sentiment_analysis/configuration.ini` file. (**Warning: `DO NOT UPLOAD THIS CONFIGURATION FILES ONLINE`**)
+-   Add the required `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET` and `MYSQL_PASSWORD` to the `tweet_sentiment_analysis/twitter_configuration.ini` file. (**Warning: `DO NOT UPLOAD THIS CONFIGURATION FILE ONLINE`**)
 
 -   Install MySQL server and set up a database instance to store the downloaded tweets. For example `CREATE DATABASE twitter_db;`
 
--   Based on the [Twitter documentation](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/intro-to-tweet-json) online, we create a TABLE with the following sample schema present in `TWEETS_schema.sql`:
+-   Based on the [Twitter documentation](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/intro-to-tweet-json) online, we create a TABLE with the following sample schema present in `tweet_sentiment_analysis/sql/TWEETS_schema.sql`:
 
 ```sql
 CREATE TABLE TWEETS (
@@ -58,13 +58,67 @@ $ mysql -u root -p twitter_db < TWEETS_schema.sql;
 
 ### Run
 
-## ETL pipeline for analysis of IMDB movie critic reviews
+#### 1. To download latest tweets based on keyword or userid search
+
+From inside the `tweet_sentiment_analysis` directory, run:
+
+```shell
+$ python download_tweets_data_to_mysql.py download_type filename
+```
+
+**Note:**
+
+`download_type` can be set to `keyword` or `userid`.
+
+`filename` should be a file containing keywords/userids in each line seperated by newline chars. (see `inputs/keywords.txt`)
+
+**Example:**
+
+-   To download latest tweets based on keywords from `inputs/keywords.txt`:
+
+```shell
+$ python download_tweets_data_to_mysql.py keyword inputs/keywords.txt
+```
+
+-   To download latest tweets based on userids from `inputs/userids.txt`:
+
+```shell
+$ python download_tweets_data_to_mysql.py userid inputs/userids.txt
+```
+
+#### 2. To run the sentiment analysis on the downloaded tweets from the MySQL database
+
+##### Cleaning the Tweet data
+
+Preprocessing steps for Natural Language Processing
+
+1.  **Normalization** Convert all words to lowercase
+
+2.  **Removing extraneous information** Remove stop words (i, the, a, an, nltk library has a decent list), punctuation, diacritical marks, and HTML
+
+3.  **Tokenization** Convert text into tokens using TextBlob
+
+4.  **Lemmatisation** Convert words to their canonical form (i.e. eating and ate to eat)
+
+5.  **Term Frequency-Inverse Document Frequency (TF-IDF)** Checking importance of words based on Frequency across main document or other multiple documents
+
+We pass our pre-processed text into the TextBlob class and run the `sentiment.polarity` method of the object to a get a sentiment scores between -1 and 1 that can be converted to integers -1, 0, or 1 signalling a negative, neutral, or positive sentiment respectively.
+
+## ETL pipeline for analysis of IMDB movie descriptions
 
 ### Requirements
+
+-   python dependencies from `requirements.txt`
 
 ### Setup
 
 ### Run
+
+After the tweet data has been loaded into the MySQL database, the `gen_tweets_sentiment_from_mysql.py` program can be executed to generated the cleaned tweet csv file, sentiment results, and a wordcloud of words based on frequency.
+
+```shell
+$ python gen_tweets_sentiment_from_mysql.py
+```
 
 #### Acknowledgements
 
