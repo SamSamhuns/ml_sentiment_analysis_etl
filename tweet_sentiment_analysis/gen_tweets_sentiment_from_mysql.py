@@ -11,16 +11,16 @@ from wordcloud import WordCloud, STOPWORDS
 
 # nltk imports
 import nltk
+nltk.download('stopwords')
+nltk.download('wordnet')
+
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 
 # Custom function imports
-from twitter_config_loader import TwitterConfig
 from twitter_config_loader import print_error_info
-
-nltk.download('stopwords')
-nltk.download('wordnet')
+from twitter_config_loader import TwitterConfig
 
 
 class TweetObject:
@@ -53,7 +53,8 @@ class TweetObject:
 
                 fetched_data = cursor.fetchall()
                 # load fetched_data in dataframe
-                tweet_df = pd.DataFrame(fetched_data, columns = ['created_at', 'tweet'])
+                tweet_df = pd.DataFrame(fetched_data, columns=[
+                                        'created_at', 'tweet'])
 
         except Error as e:
             print(e)
@@ -82,7 +83,7 @@ class TweetObject:
             tweet_text = tweet_text.lower()
             tweet_words = tweet_text.split()
             tweet_words = [wordnet_lemmatizer.lemmatize(
-                word) for word in tweet_words if not word in stopwords_list]
+                word) for word in tweet_words if not word in stopwords_list and len(word) > 1]
 
             tweet_df['clean_tweets'][i] = ' '.join(tweet_words)
 
@@ -118,11 +119,11 @@ class TweetObject:
 
     def gen_word_cloud(self, tweet_df, wordcloud_img_name="clean_tweets_word_cloud.jpg"):
         """ Take in a tweet_df and plot a WordCloud with matplotlib """
-        plt.figure(figsize=(8, 6))
+        plt.figure(figsize=(5, 6))
         tweet_wordcloud = WordCloud(
             background_color="white",
-            height=800,
-            width=600).generate(
+            height=1000,
+            width=800).generate(
             " ".join(tweet_df['clean_tweets']))
 
         plt.imshow(tweet_wordcloud, interpolation='bilinear')
@@ -140,7 +141,6 @@ def main():
     tweet_df = tweet_obj.connect_mysql_and_get_dataframe(
         f"SELECT created_at,tweet FROM {cur_config.MYSQL_TABLE};")
 
-    tweet_df.columns = ['created_at', 'tweet']
     processed_tweets = tweet_obj.preprocess_tweets(tweet_df)
     processed_tweets['sentiment'] = [tweet_obj.generate_sentiment(
         text) for text in processed_tweets['clean_tweets']]
