@@ -53,7 +53,7 @@ class TweetObject:
 
                 fetched_data = cursor.fetchall()
                 # load fetched_data in dataframe
-                tweet_df = pd.DataFrame(fetched_data)
+                tweet_df = pd.DataFrame(fetched_data, columns = ['created_at', 'tweet'])
 
         except Error as e:
             print(e)
@@ -116,7 +116,7 @@ class TweetObject:
             print(e)
             print_error_info()
 
-    def gen_word_cloud(self, tweet_df):
+    def gen_word_cloud(self, tweet_df, wordcloud_img_name="clean_tweets_word_cloud.jpg"):
         """ Take in a tweet_df and plot a WordCloud with matplotlib """
         plt.figure(figsize=(8, 6))
         tweet_wordcloud = WordCloud(
@@ -128,7 +128,7 @@ class TweetObject:
         plt.imshow(tweet_wordcloud, interpolation='bilinear')
         plt.axis('off')
         os.makedirs("img", exist_ok=True)
-        plt.savefig('./img/clean_tweets_word_cloud.jpg')
+        plt.savefig(f'./img/{wordcloud_img_name}')
         plt.show()
 
 
@@ -142,18 +142,19 @@ def main():
 
     tweet_df.columns = ['created_at', 'tweet']
     processed_tweets = tweet_obj.preprocess_tweets(tweet_df)
-    tweet_obj.gen_word_cloud(processed_tweets)
-
     processed_tweets['sentiment'] = [tweet_obj.generate_sentiment(
         text) for text in processed_tweets['clean_tweets']]
 
-    tweet_obj.save_df_as_csv(processed_tweets)
     print(
         "Percentage of Positive tweets {0:.2f}%".format((processed_tweets['sentiment'].value_counts()[1] / processed_tweets.shape[0]) * 100))
     print(
         "Percentage of Neutral tweets {0:.2f}%".format((processed_tweets['sentiment'].value_counts()[0] / processed_tweets.shape[0]) * 100))
     print(
         "Percentage of Negative tweets {0:.2f}%".format((processed_tweets['sentiment'].value_counts()[-1] / processed_tweets.shape[0]) * 100))
+
+    # The names of the jpg and the csv files can be altered
+    tweet_obj.gen_word_cloud(processed_tweets, "trump_tweets_word_cloud.jpg")
+    tweet_obj.save_df_as_csv(processed_tweets, "trump_tweets.csv")
 
 
 if __name__ == "__main__":
