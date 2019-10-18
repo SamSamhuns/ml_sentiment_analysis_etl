@@ -1,5 +1,7 @@
 # Extract Transform Load Data Pipelines for sentiment analysis
 
+<img src='img/etl_headline.jpg' />
+
 -   [Twitter feed ETL sentiment analysis based on keyword search.](#data-pipeline-for-sentiment-analysis-of-twitter-feeds)
 -   [IMDB movie description sentiment analysis based on movie genre.](#etl-pipeline-for-analysis-of-imdb-movie-descriptions)
 
@@ -116,6 +118,11 @@ After the tweet data has been loaded into the MySQL database, the `gen_tweets_se
 ```shell
 $ python gen_tweets_sentiment_from_mysql.py
 ```
+
+Sample wordcloud from tweets downloaded based on keywords 'batman' and 'joker'.
+
+<img src='img/batman_joker_tweets_word_cloud.jpg' />
+
 
 ## ETL pipeline for analysis of IMDB movie descriptions
 
