@@ -63,7 +63,7 @@ $ mysql -u root -p twitter_db < TWEETS_BY_USERID_schema.sql;
 
 ### Run
 
-#### 1. To download latest tweets based on keyword or userid search
+### 1. To download latest tweets based on keyword or userid search
 
 Make sure the `MYSQL_TABLE` is set to the correct table for the `download_type`. i.e. For downloading using keyword filters, inside `twitter_configuration.ini`, set `TABLE` to `TWEETS_BY_KEYWORD` or the relevant table.
 
@@ -93,7 +93,7 @@ $ python download_tweets_data_to_mysql.py keyword inputs/keywords.txt
 $ python download_tweets_data_to_mysql.py userid inputs/userids.txt
 ```
 
-#### 2. To run the sentiment analysis on the downloaded tweets from the MySQL database
+### 2. To run the sentiment analysis on the downloaded tweets from the MySQL database
 
 ##### Cleaning the Tweet data
 
@@ -121,10 +121,9 @@ After the tweet data has been loaded into the MySQL database, the `gen_tweets_se
 $ python gen_tweets_sentiment_from_mysql.py
 ```
 
-Sample wordcloud from tweets downloaded based on keywords 'batman' and 'joker'.
+**Sample wordcloud from tweets downloaded based on keywords 'batman' and 'joker'.**
 
 <img src='img/batman_joker_tweets_word_cloud.jpg' />
-
 
 ## ETL pipeline for analysis of IMDB movie descriptions
 
