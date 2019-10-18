@@ -25,14 +25,14 @@ Download tweets with twitter api, load in an MySQL db, and analyze tweet sentime
 
 ### Setup
 
--   Add the required `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET` and `MYSQL_PASSWORD` to the `tweet_sentiment_analysis/twitter_configuration.ini` file. (**Warning: `DO NOT UPLOAD THIS CONFIGURATION FILE ONLINE`**)
+-   Add the required `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`, `MYSQL_DATABASE`, `MYSQL_TABLE`, and `MYSQL_PASSWORD` to the `tweet_sentiment_analysis/twitter_configuration.ini` file. (**Warning: `DO NOT UPLOAD THIS CONFIGURATION FILE ONLINE`**)
 
 -   Install MySQL server and set up a database instance to store the downloaded tweets. For example `CREATE DATABASE twitter_db;`
 
--   Based on the [Twitter documentation](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/intro-to-tweet-json) online, we create a TABLE with the following sample schema present in `tweet_sentiment_analysis/sql/TWEETS_schema.sql`:
+-   Based on the [Twitter documentation](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/intro-to-tweet-json) online, we create a TABLE with the following sample schema present in `tweet_sentiment_analysis/sql/TWEETS_BY_KEYWORD_schema.sql` for downloading tweets by keyword. The sample schema for downloading tweets by userid are present in `tweet_sentiment_analysis/sql/TWEETS_BY_USERID_schema.sql`:
 
 ```sql
-CREATE TABLE TWEETS (
+CREATE TABLE TWEETS_BY_KEYWORD (
     ID INT AUTO_INCREMENT,
     tweet_id VARCHAR(255) NOT NULL,
     tweet TEXT NOT NULL,
@@ -53,12 +53,15 @@ CREATE TABLE TWEETS (
 -   The table creation SQL command can loaded into `twitterdb` using:
 
 ```shell
-$ mysql -u root -p twitter_db < TWEETS_schema.sql;
+$ mysql -u root -p twitter_db < TWEETS_BY_KEYWORD_schema.sql;
+$ mysql -u root -p twitter_db < TWEETS_BY_USERID_schema.sql;
 ```
 
 ### Run
 
 #### 1. To download latest tweets based on keyword or userid search
+
+Make sure the `MYSQL_TABLE` is set to the correct table for the `download_type`. i.e. For downloading using keyword filters, inside `twitter_configuration.ini`, set `TABLE` to `TWEETS_BY_KEYWORD` or the relevant table.
 
 From inside the `tweet_sentiment_analysis` directory, run:
 
@@ -92,7 +95,7 @@ $ python download_tweets_data_to_mysql.py userid inputs/userids.txt
 
 Preprocessing steps for Natural Language Processing
 
-1.  **Normalization** Convert all words to lowercase
+1.  **Normalization** Convert all words to lowercase. Remove single chars which do not give much information
 
 2.  **Removing extraneous information** Remove stop words (i, the, a, an, nltk library has a decent list), punctuation, diacritical marks, and HTML
 
@@ -104,6 +107,16 @@ Preprocessing steps for Natural Language Processing
 
 We pass our pre-processed text into the TextBlob class and run the `sentiment.polarity` method of the object to a get a sentiment scores between -1 and 1 that can be converted to integers -1, 0, or 1 signalling a negative, neutral, or positive sentiment respectively.
 
+##### Generating the wordcloud and sentiment analysis
+
+**Example:**
+
+After the tweet data has been loaded into the MySQL database, the `gen_tweets_sentiment_from_mysql.py` program can be executed to generated the cleaned tweet csv file, sentiment results, and a wordcloud of words based on frequency.
+
+```shell
+$ python gen_tweets_sentiment_from_mysql.py
+```
+
 ## ETL pipeline for analysis of IMDB movie descriptions
 
 ### Requirements
@@ -113,12 +126,6 @@ We pass our pre-processed text into the TextBlob class and run the `sentiment.po
 ### Setup
 
 ### Run
-
-After the tweet data has been loaded into the MySQL database, the `gen_tweets_sentiment_from_mysql.py` program can be executed to generated the cleaned tweet csv file, sentiment results, and a wordcloud of words based on frequency.
-
-```shell
-$ python gen_tweets_sentiment_from_mysql.py
-```
 
 #### Acknowledgements
 
