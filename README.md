@@ -29,11 +29,11 @@ Download tweets with twitter api, load in an MySQL db, and analyze tweet sentime
 
 ### Setup
 
--   Add the required `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`, `MYSQL_DATABASE`, `MYSQL_TABLE`, and `MYSQL_PASSWORD` to the `tweet_sentiment_analysis/twitter_configuration.ini` file. (**Warning: `DO NOT UPLOAD THIS CONFIGURATION FILE ONLINE`**)
+-   Add the required `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`, `MYSQL_DATABASE`, `MYSQL_TABLE`, and `MYSQL_PASSWORD` to the `twitter_sent_analysis/twitter_configuration.ini` file. (**Warning: `DO NOT UPLOAD THIS CONFIGURATION FILE ONLINE`**)
 
 -   Install MySQL server and set up a database instance to store the downloaded tweets. For example `CREATE DATABASE twitter_db;`
 
--   Based on the [Twitter documentation](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/intro-to-tweet-json) online, we create a TABLE with the following sample schema present in `tweet_sentiment_analysis/sql/TWEETS_BY_KEYWORD_schema.sql` for downloading tweets by keyword. The sample schema for downloading tweets by userid are present in `tweet_sentiment_analysis/sql/TWEETS_BY_USERID_schema.sql`:
+-   Based on the [Twitter documentation](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/intro-to-tweet-json) online, we create a TABLE with the following sample schema present in `twitter_sent_analysis/sql/TWEETS_BY_KEYWORD_schema.sql` for downloading tweets by keyword. The sample schema for downloading tweets by userid are present in `twitter_sent_analysis/sql/TWEETS_BY_USERID_schema.sql`:
 
 ```sql
 CREATE TABLE TWEETS_BY_KEYWORD (
@@ -67,7 +67,7 @@ $ mysql -u root -p twitter_db < TWEETS_BY_USERID_schema.sql;
 
 Make sure the `MYSQL_TABLE` is set to the correct table for the `download_type`. i.e. For downloading using keyword filters, inside `twitter_configuration.ini`, set `TABLE` to `TWEETS_BY_KEYWORD` or the relevant table.
 
-From inside the `tweet_sentiment_analysis` directory, run:
+From inside the `twitter_sent_analysis` directory, run:
 
 ```shell
 $ python download_tweets_data_to_mysql.py download_type filename
@@ -137,4 +137,5 @@ $ python gen_tweets_sentiment_from_mysql.py
 
 #### Acknowledgements
 
+-   [Kaggle Competition Sentiment Analysis on Movie Reviews](https://www.kaggle.com/c/sentiment-analysis-on-movie-reviews/)
 -   [Daniel Foley](https://www.linkedin.com/in/daniel-foley-1ab904a2/)
