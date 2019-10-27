@@ -129,3 +129,7 @@ dmypy.json
 
 # Secret configuration file
 twitter_configuration_secret.ini
+
+# Exclude all data in rotton_tomatoes_reviews except zipped data
+/rotten_tomatoes_movie_reviews_sent_analysis/data/*
+!/rotten_tomatoes_movie_reviews_sent_analysis/data/sentiment-analysis-on-movie-reviews.zip
