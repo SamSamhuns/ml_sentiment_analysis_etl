@@ -8,23 +8,18 @@ from mysql.connector import Error
 
 from textblob import TextBlob
 from wordcloud import WordCloud, STOPWORDS
+from twitter_config_loader import TwitterConfig
+from twitter_config_loader import print_error
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
 
-# nltk imports
 import nltk
 nltk.download('stopwords')
 nltk.download('wordnet')
 
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
-from nltk.corpus import stopwords
-
-# Custom function imports
-from twitter_config_loader import print_error_info
-from twitter_config_loader import TwitterConfig
-
 
 class TweetObject:
-    ''' Class to hold'''
 
     def __init__(self, host, user, password, database):
         self.MYSQL_HOST = host
@@ -33,6 +28,8 @@ class TweetObject:
         self.MYSQL_DATABASE = database
 
     def connect_mysql_and_get_dataframe(self, query):
+        """ Retrieve data from sql db
+            and return as a Pandas dataframe """
         try:
             mysql_con = mysql.connector.connect(
                 host=self.MYSQL_HOST,
@@ -40,12 +37,10 @@ class TweetObject:
                 password=self.MYSQL_PASSWORD,
                 database=self.MYSQL_DATABASE,
                 auth_plugin='mysql_native_password',
-                charset='utf8'
+                charset='utf8mb4'
             )
 
             if mysql_con.is_connected():
-                """ Retrieve data from sql db
-                and return as a Pandas dataframe """
                 print(
                     f"Connected to {self.MYSQL_DATABASE} as {self.MYSQL_USER} now")
                 cursor = mysql_con.cursor()
@@ -107,7 +102,6 @@ class TweetObject:
             return -1  # Negative
 
     def save_df_as_csv(self, tweet_df, csv_name="cleaned_tweets.csv"):
-        """ Save df as csv """
         try:
             os.makedirs("csv", exist_ok=True)
             tweet_df.to_csv(f'./csv/{csv_name}')
@@ -115,7 +109,7 @@ class TweetObject:
 
         except Error as e:
             print(e)
-            print_error_info()
+            print_error()
 
     def gen_word_cloud(self, tweet_df, wordcloud_img_name="clean_tweets_word_cloud.jpg"):
         """ Take in a tweet_df and plot a WordCloud with matplotlib """
