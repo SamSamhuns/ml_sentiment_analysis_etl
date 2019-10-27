@@ -5,9 +5,14 @@ import sys
 import configparser
 
 
-def print_error_info():
-    print(f"Error Type {sys.exc_info()[0]}, description {sys.exc_info()[1]}," +
-          f"line: {sys.exc_info()[2].tb_lineno}")
+def print_error():
+    print(f"Error: {sys.exc_info()[0]},  description: {sys.exc_info()[1]}, "
+          + f"line: {sys.exc_info()[2].tb_lineno}")
+
+
+def print_warning():
+    print(f"Warning: {sys.exc_info()[0]}, description: {sys.exc_info()[1]}, "
+          + f"line: {sys.exc_info()[2].tb_lineno}")
 
 
 class TwitterConfig:
@@ -15,7 +20,7 @@ class TwitterConfig:
     configuration.ini '''
 
     config = configparser.ConfigParser()
-    config.read('./twitter_configuration_secret.ini')
+    config.read('./twitter_configuration.ini')
 
     # table where all tweet info is stored
     MYSQL_HOST = config['MYSQL']['HOST']
