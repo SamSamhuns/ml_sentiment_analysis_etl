@@ -6,7 +6,8 @@ import mysql.connector
 from dateutil import parser
 from mysql.connector import Error
 from twitter_config_loader import TwitterConfig
-from twitter_config_loader import print_error_info
+from twitter_config_loader import print_error
+from twitter_config_loader import print_warning
 
 DEBUG = True
 
@@ -31,8 +32,8 @@ class TweetStreamListener(tweepy.StreamListener):
 
     def __init__(self):
         super().__init__()
-        self.limit = 300  # number of tweets to download in one session
-        self.counter = 0  # counter to count tweets
+        self.tweet_download_limit = 10000
+        self.tweet_download_count = 0
 
     def on_connect(self):
         print("Connected to the Twitter API now")
@@ -54,33 +55,28 @@ class TweetStreamListener(tweepy.StreamListener):
         user_name = json_data['user']['screen_name']
         user_friends_count = json_data['user']['friends_count']
         user_followers_count = json_data['user']['followers_count']
+        tweet_place = json_data['place']['country'] if \
+            json_data['place'] != None else 'NULL'
 
-        try:
-            tweet_place = json_data['place']['country']
-        except Exception as e:
-            if DEBUG:
-                print_error_info()
-            tweet_place = "NULL"
         try:
             favorite_count = json_data['favorite_count']
         except Exception as e:
             if DEBUG:
-                print_error_info()
+                print_warning()
             favorite_count = 0
         try:
             user_location = json_data['user']['location']
         except Exception as e:
             if DEBUG:
-                print_error_info()
+                print_warning()
             user_location = "NULL"
 
-        self.counter += 1
-        if self.counter > self.limit:
+        self.tweet_download_count += 1
+        if self.tweet_download_count > self.tweet_download_limit:
             print(
                 "Personal Tweet access limit reached. Aborting now. [This can be altered]")
             return False
 
-        # Call insert_tweets_in_mysql_db()
         insert_tweets_in_mysql_db(tweet_id, tweet, created_at, tweet_place, favorite_count,
                                   retweet_count, reply_count, user_name, user_location,
                                   user_followers_count, user_friends_count)
@@ -110,7 +106,7 @@ def insert_tweets_in_mysql_db(tweet_id, tweet, created_at, tweet_place, favorite
             password=cur_config.MYSQL_PASSWORD,
             database=cur_config.MYSQL_DATABASE,
             auth_plugin='mysql_native_password',
-            charset='utf8')
+            charset='utf8mb4')
 
         if mysql_con.is_connected():
             ''' Insert data from twitter api '''
@@ -126,10 +122,18 @@ def insert_tweets_in_mysql_db(tweet_id, tweet, created_at, tweet_place, favorite
             mysql_con.commit()
 
     except Error as e:
+        print_error()
         print(e)
 
-    cursor.close()
-    mysql_con.close()
+    try:
+        cursor.close()
+        mysql_con.close()
+    except UnboundLocalError:
+        print_error()
+        sys.exit(-1)
+
+    print(f"Inserted Tweet '{tweet[:(min(len(tweet), 60))]}...'" +
+          f"into {cur_config.MYSQL_TABLE}")
     return
 
 
@@ -152,8 +156,7 @@ def download_tweets_by_user_id(api, tracking_filters):
     customStream.filter(follow=tracking_filters, languages=['en'])
 
 
-def validate_and_generate_args():
-    ''' Function to validate and return cmd args filename and download type '''
+def validate_and_return_args():
     parser = argparse.ArgumentParser(
         description="Download and save tweets to MySQL db based on keywords/user")
 
@@ -171,7 +174,7 @@ def validate_and_generate_args():
     return parser.parse_args()
 
 
-def validate_file_and_generate_list(argparse_obj):
+def validate_file_and_return_tracking_filter_list(argparse_obj):
     """ Function to validate file exists and generate a list of keywords or userids"""
     with open(argparse_obj.filename, "r") as file:
         kw_list = file.read()
@@ -185,8 +188,8 @@ def main():
     cur_config = TwitterConfig()
     api = TweepyConfig(cur_config).tweepy_api()
 
-    argparse_obj = validate_and_generate_args()
-    tracking_filters = validate_file_and_generate_list(argparse_obj)
+    argparse_obj = validate_and_return_args()
+    tracking_filters = validate_file_and_return_tracking_filter_list(argparse_obj)
     print(
         f"Tracking filter mode set to {argparse_obj.download_type} and filters are {tracking_filters}")
 
