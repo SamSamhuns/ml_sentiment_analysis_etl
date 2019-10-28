@@ -24,6 +24,7 @@ Download tweets with twitter api, load in an MySQL db, and analyze tweet sentime
 
 ### Requirements
 
+-   Python 3
 -   Twitter account and API credentials (Access Token from a Twitter app)
 -   MySQL database server
 
@@ -123,9 +124,26 @@ $ python gen_tweets_sentiment_from_mysql.py
 
 **Sample wordcloud from tweets downloaded based on keywords 'batman' and 'joker'.**
 
+<p align='center'>
 <img src='img/batman_joker_tweets_word_cloud.jpg' />
+</p>
 
-## ETL pipeline for analysis of IMDB movie descriptions
+## ETL pipeline for sentiment analysis of Rotten Tomatoes Movie Reviews
+
+**Data Description**
+
+The dataset is comprised of `tsv` files with phrases from the Rotten Tomatoes dataset. Sentences have been shuffled from their original order. Each Sentence has been parsed into many phrases by the Stanford parser. Each phrase has a `PhraseId`. Each sentence has a `SentenceId`. Phrases that are repeated (such as short/common words) are only included once in the data.
+
+`train.tsv` contains the phrases and their associated sentiment labels. SentenceId can be used to track which phrases belong to a single sentence.
+We attempt to assign a sentiment label to each phrase in `test.tsv` which contains just phrases.
+
+The sentiment labels are:
+
+-   0 negative
+-   1 somewhat negative
+-   2 neutral
+-   3 somewhat positive
+-   4 positive
 
 ### Requirements
 
@@ -134,6 +152,14 @@ $ python gen_tweets_sentiment_from_mysql.py
 ### Setup
 
 ### Run
+
+#### Run sentiment analysis from previously downloaded RT reviews from Kaggle
+
+With the `venv` activated, from inside the `rotten_tomatoes_movie_reviews_sent_analysis` directory, run:
+
+```shell
+$ python gen_rt_review_sentiment.py
+```
 
 #### Acknowledgements
 
