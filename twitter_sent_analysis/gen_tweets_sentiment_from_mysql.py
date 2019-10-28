@@ -58,33 +58,30 @@ class TweetObject:
         return tweet_df
 
     def preprocess_tweets(self, tweet_df):
-        """ Take orginial tweets as a Pandas df and normalize them
+        """ Take orginial tweets as df and normalize them
             by removing punctuation, stop words, hmtl, emoticons and
             convert uppercase to lowercase. Gen canonical form using
             WordNetLemmatizer """
         stopwords_list = stopwords.words('english')
         wordnet_lemmatizer = WordNetLemmatizer()
-        tweet_df['clean_tweets'] = None
-        tweet_df['tweet_len'] = None
+
         tweet_text_col_name = "tweet"
+        tweet_df['clean_tweets'] = tweet_df[tweet_text_col_name]
+        tweet_df['tweet_len'] = None
 
-        for i in range(len(tweet_df[tweet_text_col_name])):
-            ''' iterate through all the tweets and remove all non-letter chars '''
-            exclude_items = ['[^a-zA-Z]', 'rt', 'http', 'RT', 'co']
-            exclude = '|'.join(exclude_items)
+        exclude_items = ['[^a-zA-Z]', 'rt', 'http', 'RT', 'co']
+        exclude = '|'.join(exclude_items)
 
-            # re.sub(pattern, repl, string)
-            tweet_text = re.sub(exclude, ' ', tweet_df[tweet_text_col_name][i])
-            tweet_text = tweet_text.lower()
-            tweet_words = tweet_text.split()
-            tweet_words = [wordnet_lemmatizer.lemmatize(
-                word) for word in tweet_words if not word in stopwords_list and len(word) > 1]
+        tweet_df['clean_tweets'].replace(
+            to_replace=exclude, value=" ", regex=True, inplace=True)
 
-            tweet_df['clean_tweets'][i] = ' '.join(tweet_words)
+        def normalize(tweet):
+            return ' '.join([wordnet_lemmatizer.lemmatize(
+                word) for word in tweet.lower().split()
+                if not word in stopwords_list and len(word) > 1])
 
-        # Save length of each tweet object in column "tweet_len"
-        tweet_df['tweet_len'] = np.array(
-            [len(word) for word in tweet_df['clean_tweets']])
+        tweet_df['clean_tweets'] = tweet_df['clean_tweets'].apply(normalize)
+        tweet_df['tweet_len'] = tweet_df['clean_tweets'].apply(len)
 
         return tweet_df
 
@@ -136,8 +133,8 @@ def main():
         f"SELECT created_at,tweet FROM {cur_config.MYSQL_TABLE};")
 
     processed_tweets = tweet_obj.preprocess_tweets(tweet_df)
-    processed_tweets['sentiment'] = [tweet_obj.generate_sentiment(
-        text) for text in processed_tweets['clean_tweets']]
+    processed_tweets['sentiment'] = processed_tweets['clean_tweets'].apply(
+        tweet_obj.generate_sentiment)
 
     print(
         "Percentage of Positive tweets {0:.2f}%".format((processed_tweets['sentiment'].value_counts()[1] / processed_tweets.shape[0]) * 100))
