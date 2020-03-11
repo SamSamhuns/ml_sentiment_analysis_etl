@@ -3,6 +3,7 @@ import json
 import tweepy
 import argparse
 import mysql.connector
+from typing import List
 from dateutil import parser
 from mysql.connector import Error
 from twitter_config_loader import TwitterConfig
@@ -15,7 +16,7 @@ DEBUG = True
 class TweepyConfig:
     ''' Class for creating tweepy API objects loaded with twitter API keys '''
 
-    def __init__(self, cur_config):
+    def __init__(self, cur_config: 'TwitterConfig') -> None:
         self.auth = tweepy.OAuthHandler(
             cur_config.CONSUMER_KEY,
             cur_config.CONSUMER_SECRET)
@@ -30,12 +31,12 @@ class TweepyConfig:
 class TweetStreamListener(tweepy.StreamListener):
     ''' Tweepy listener class that inherits from tweepy.StreamListener '''
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.tweet_download_limit = 10000
+        self.tweet_download_limit = 10000000
         self.tweet_download_count = 0
 
-    def on_connect(self):
+    def on_connect(self) -> None:
         print("Connected to the Twitter API now")
 
     def on_status(self, status):
@@ -47,16 +48,21 @@ class TweetStreamListener(tweepy.StreamListener):
         ''' Read tweets as JSON objs and extract data '''
         json_data = json.loads(data)
 
-        tweet_id = json_data['id']
-        tweet = json_data['text']
-        created_at = parser.parse(json_data['created_at'])
-        reply_count = json_data['reply_count']
-        retweet_count = json_data['retweet_count']
-        user_name = json_data['user']['screen_name']
-        user_friends_count = json_data['user']['friends_count']
-        user_followers_count = json_data['user']['followers_count']
-        tweet_place = json_data['place']['country'] if \
-            json_data['place'] != None else 'NULL'
+        try:
+            tweet_id = json_data['id']
+            tweet = json_data['text']
+            created_at = parser.parse(json_data['created_at'])
+            reply_count = json_data['reply_count']
+            retweet_count = json_data['retweet_count']
+            user_name = json_data['user']['screen_name']
+            user_friends_count = json_data['user']['friends_count']
+            user_followers_count = json_data['user']['followers_count']
+            tweet_place = json_data['place']['country'] if \
+                json_data['place'] != None else 'NULL'
+        except Exception as e:
+            if DEBUG:
+                print(f"Error: {e}")
+            return
 
         try:
             favorite_count = json_data['favorite_count']
@@ -94,9 +100,17 @@ class TweetStreamListener(tweepy.StreamListener):
         # returning non-False reconnects the stream, with backoff.
 
 
-def insert_tweets_in_mysql_db(tweet_id, tweet, created_at, tweet_place, favorite_count,
-                              retweet_count, reply_count, user_name, user_location,
-                              user_followers_count, user_friends_count):
+def insert_tweets_in_mysql_db(tweet_id: str,
+                              tweet: str,
+                              created_at: str,
+                              tweet_place: str,
+                              favorite_count: str,
+                              retweet_count: str,
+                              reply_count: str,
+                              user_name: str,
+                              user_location: str,
+                              user_followers_count: str,
+                              user_friends_count: str):
     ''' Function to connect to the mysql db and insert tweet data '''
     cur_config = TwitterConfig()
     try:
@@ -132,33 +146,33 @@ def insert_tweets_in_mysql_db(tweet_id, tweet, created_at, tweet_place, favorite
         print_error()
         sys.exit(-1)
 
-    print(f"Inserted Tweet '{tweet[:(min(len(tweet), 60))]}...'" +
-          f"into {cur_config.MYSQL_TABLE}")
+    if DEBUG:
+        print(f"Inserted Tweet '{tweet[:(min(len(tweet), 60))]}...'"
+              + f"into {cur_config.MYSQL_TABLE}")
     return
 
 
-def download_tweets_by_keyword(api, tracking_filters):
-
-    customStreamListener = TweetStreamListener()
-    customStream = tweepy.Stream(
-        auth=api.auth, listener=customStreamListener)
-
-    customStream.filter(track=tracking_filters, languages=['en'])
-
-
-def download_tweets_by_user_id(api, tracking_filters):
+def download_tweets_by_filters(api,
+                               track: List[str] = [],
+                               follow: List[str] = [],
+                               locations: List[str] = [],
+                               languages: List[str] = ['en']):
 
     customStreamListener = TweetStreamListener()
     customStream = tweepy.Stream(
         auth=api.auth, listener=customStreamListener)
 
     # To specify a particular twitter account i.e.25073877=realDonaldTrump
-    customStream.filter(follow=tracking_filters, languages=['en'])
+    customStream.filter(track=track,
+                        follow=follow,
+                        locations=locations,
+                        languages=languages)
 
 
 def validate_and_return_args():
     parser = argparse.ArgumentParser(
-        description="Download and save tweets to MySQL db based on keywords/user")
+        description="Download and save tweets to MySQL " +
+                    "db based on keywords, userid or geolocation")
 
     parser.add_argument("download_type",
                         type=str,
@@ -189,15 +203,16 @@ def main():
     api = TweepyConfig(cur_config).tweepy_api()
 
     argparse_obj = validate_and_return_args()
-    tracking_filters = validate_file_and_return_tracking_filter_list(argparse_obj)
+    tracking_filters = validate_file_and_return_tracking_filter_list(
+        argparse_obj)
     print(
         f"Tracking filter mode set to {argparse_obj.download_type} and filters are {tracking_filters}")
 
     # Choose the appropriate download mode based on user arguments
     if argparse_obj.download_type == 'keyword':
-        download_tweets_by_keyword(api, tracking_filters)
+        download_tweets_by_filters(api, track=tracking_filters)
     elif argparse_obj.download_type == 'userid':
-        download_tweets_by_user_id(api, tracking_filters)
+        download_tweets_by_filters(api, follow=tracking_filters)
 
 
 if __name__ == "__main__":

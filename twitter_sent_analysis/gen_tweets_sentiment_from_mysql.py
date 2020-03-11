@@ -1,7 +1,8 @@
 import re
 import os
-import numpy as np
+import argparse
 import pandas as pd
+from time import time
 import mysql.connector
 import matplotlib.pyplot as plt
 from mysql.connector import Error
@@ -62,7 +63,7 @@ class TweetObject:
             by removing punctuation, stop words, hmtl, emoticons and
             convert uppercase to lowercase. Gen canonical form using
             WordNetLemmatizer """
-        stopwords_list = stopwords.words('english')
+        stopwords_set = set(stopwords.words('english'))
         wordnet_lemmatizer = WordNetLemmatizer()
 
         tweet_text_col_name = "tweet"
@@ -78,7 +79,7 @@ class TweetObject:
         def normalize(tweet):
             return ' '.join([wordnet_lemmatizer.lemmatize(
                 word) for word in tweet.lower().split()
-                if not word in stopwords_list and len(word) > 1])
+                if not word in stopwords_set and len(word) > 1])
 
         tweet_df['clean_tweets'] = tweet_df['clean_tweets'].apply(normalize)
         tweet_df['tweet_len'] = tweet_df['clean_tweets'].apply(len)
@@ -124,7 +125,21 @@ class TweetObject:
         plt.show()
 
 
+def validate_and_return_args():
+    parser = argparse.ArgumentParser(
+        description="Generate csv file and word cloud image from Tweets in the mysql database")
+
+    parser.add_argument("filename",
+                        type=str,
+                        action='store',
+                        default=f"{time()[:10]}",
+                        help="Name of csv/word cloud file")
+
+    return parser.parse_args()
+
+
 def main():
+    argparse_obj = validate_and_return_args()
     cur_config = TwitterConfig()
     tweet_obj = TweetObject(cur_config.MYSQL_HOST, cur_config.MYSQL_USERNAME,
                             cur_config.MYSQL_PASSWORD, cur_config.MYSQL_DATABASE)
@@ -136,16 +151,18 @@ def main():
     processed_tweets['sentiment'] = processed_tweets['clean_tweets'].apply(
         tweet_obj.generate_sentiment)
 
-    print(
-        "Percentage of Positive tweets {0:.2f}%".format((processed_tweets['sentiment'].value_counts()[1] / processed_tweets.shape[0]) * 100))
-    print(
-        "Percentage of Neutral tweets {0:.2f}%".format((processed_tweets['sentiment'].value_counts()[0] / processed_tweets.shape[0]) * 100))
-    print(
-        "Percentage of Negative tweets {0:.2f}%".format((processed_tweets['sentiment'].value_counts()[-1] / processed_tweets.shape[0]) * 100))
+    print("Percentage of Positive tweets {0:.2f}%".format(
+        (processed_tweets['sentiment'].value_counts()[1] / processed_tweets.shape[0]) * 100))
+    print("Percentage of Neutral tweets {0:.2f}%".format(
+        (processed_tweets['sentiment'].value_counts()[0] / processed_tweets.shape[0]) * 100))
+    print("Percentage of Negative tweets {0:.2f}%".format(
+        (processed_tweets['sentiment'].value_counts()[-1] / processed_tweets.shape[0]) * 100))
 
     # The names of the jpg and the csv files can be altered
-    tweet_obj.gen_word_cloud(processed_tweets, "trump_tweets_word_cloud.jpg")
-    tweet_obj.save_df_as_csv(processed_tweets, "trump_tweets.csv")
+    tweet_obj.gen_word_cloud(processed_tweets,
+                             f"{argparse_obj.filename}_word_cloud.jpg")
+    tweet_obj.save_df_as_csv(processed_tweets,
+                             f"{argparse_obj.filename}_tweets.csv")
 
 
 if __name__ == "__main__":
