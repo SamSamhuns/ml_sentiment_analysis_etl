@@ -1,6 +1,5 @@
 import re
 import os
-import numpy as np
 import pandas as pd
 
 from textblob import TextBlob
@@ -28,12 +27,12 @@ class MovieReviewObject:
 
     def preprocess(self, review_df):
         ''' lowercase, remove non-alnum chars, remove stop words, and lemmatize '''
-        stopwords_list = stopwords.words('english')
+        stopwords_set = set(stopwords.words('english'))
         wordnet_lemmatizer = WordNetLemmatizer()
 
         def normalize(word):
             return ' '.join([wordnet_lemmatizer.lemmatize(
-                word) for word in word.lower().split() if word not in stopwords_list])
+                word) for word in word.lower().split() if word not in stopwords_set])
 
         phrase_col_name = 'Phrase'
         review_df['cleanPhrase'] = review_df[phrase_col_name]
@@ -49,12 +48,20 @@ class MovieReviewObject:
 
     def generate_sentiment(self, text):
         text_analysis = TextBlob(text)
-        if text_analysis.sentiment.polarity > 0:
-            return 1   # Postive
-        elif text_analysis.sentiment.polarity == 0:
-            return 0   # Neutral
+        negative_bound = -0.3
+        positive_bound = 0.3
+        neutral = 0
+        polarity = text_analysis.sentiment.polarity
+        if polarity > positive_bound:
+            return 4   # postive
+        if neutral < polarity < positive_bound:
+            return 3   # somewhat postive
+        elif polarity == neutral:
+            return 2   # neutral
+        elif neutral > polarity > negative_bound:
+            return 1   # somewhat negative
         else:
-            return -1  # Negative
+            return 0   # negative
 
 
 def main():
@@ -62,7 +69,13 @@ def main():
     rotrev_df = rotrev.get_df_from_file('data/train.tsv')
     rotrev_df = rotrev.preprocess(rotrev_df)
 
-    rotrev_df['sentiment'] = rotrev_df['cleanPhrase'].apply(rotrev.generate_sentiment)
+    rotrev_df['sentiment'] = rotrev_df['cleanPhrase'].apply(
+        rotrev.generate_sentiment)
+
+    rotrev_df['Correct'] = (rotrev_df['sentiment'] == rotrev_df['Sentiment'])
+    rotrev_df_value_counts = rotrev_df['Correct'].value_counts()
+    print(
+        f"Accuracy ={rotrev_df_value_counts[True] / (rotrev_df_value_counts[True]+rotrev_df_value_counts[False])}")
 
 
 if __name__ == "__main__":
