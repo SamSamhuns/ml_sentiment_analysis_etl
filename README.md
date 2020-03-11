@@ -71,27 +71,45 @@ Make sure the `MYSQL_TABLE` is set to the correct table for the `download_type`.
 From inside the `twitter_sent_analysis` directory, run:
 
 ```shell
-$ python download_tweets_data_to_mysql.py download_type filename
+$ python download_tweets_data_to_mysql.py [-FLAG] [FILENAME]
 ```
 
 **Note:**
 
-`download_type` can be set to `keyword` or `userid`.
+-   To get help, run:
 
-`filename` should be a file containing keywords/userids in each line seperated by newline chars. (see `inputs/keywords.txt`)
+```shell
+$ python download_tweets_data_to_mysql.py -h
+```
+
+`-FLAG` can be set to `-t` for `keyword` searchm `-f` for `userid` search and `-l` for location search.
+
+The input files should be a files containing the search terms in each line seperated by newline chars. (i.e. see `inputs/keywords.txt`)
 
 **Example:**
 
 -   To download latest tweets based on keywords from `inputs/keywords.txt`:
 
 ```shell
-$ python download_tweets_data_to_mysql.py keyword inputs/keywords.txt
+$ python download_tweets_data_to_mysql.py -t inputs/keywords.txt
 ```
 
 -   To download latest tweets based on userids from `inputs/userids.txt`:
 
 ```shell
-$ python download_tweets_data_to_mysql.py userid inputs/userids.txt
+$ python download_tweets_data_to_mysql.py -f inputs/userids.txt
+```
+
+-   To download latest tweets based on geolocations from `inputs/locations.txt`:
+
+```shell
+$ python download_tweets_data_to_mysql.py -l inputs/locations.txt
+```
+
+-   Filters can be combined as well. To download latest tweets based on userids from `inputs/userids.txt` and keywords from `inputs/keywords.txt`:
+
+```shell
+$ python download_tweets_data_to_mysql.py -f inputs/userids.txt -t inputs/keywords.txt
 ```
 
 For more documentation: go to the [Twitter Streaming API documentation page](https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters)
