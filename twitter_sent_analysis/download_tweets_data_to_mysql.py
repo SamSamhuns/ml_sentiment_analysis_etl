@@ -174,23 +174,36 @@ def validate_and_return_args():
         description="Download and save tweets to MySQL " +
                     "db based on keywords, userid or geolocation")
 
-    parser.add_argument("download_type",
+    parser.add_argument('-t',
+                        '--track',
                         type=str,
+                        nargs='?',
                         action='store',
-                        default="keyword",
-                        choices=['keyword', 'userid'],
-                        help="Type of download (default: 'keyword', options: ['keyword', 'userid']) ")
-    parser.add_argument("filename",
+                        default=None,
+                        help="Name of file containing keywords i.e. batman,joker")
+    parser.add_argument('-f',
+                        '--follow',
                         type=str,
+                        nargs='?',
                         action='store',
-                        help="Name of file containing keywords/userids")
+                        default=None,
+                        help="Name of file containing userids i.e. 25073877")
+    parser.add_argument('-l',
+                        '--locations',
+                        type=str,
+                        nargs='?',
+                        action='store',
+                        default=None,
+                        help="Name of file containing geo-locations i.e. -122.75,36.8,-121.75,37.8,-74,40,-73,41")
 
     return parser.parse_args()
 
 
-def validate_file_and_return_tracking_filter_list(argparse_obj):
+def validate_file_and_rtn_filter_list(filename):
     """ Function to validate file exists and generate a list of keywords or userids"""
-    with open(argparse_obj.filename, "r") as file:
+    if filename is None:
+        return []
+    with open(filename, "r") as file:
         kw_list = file.read()
         kw_list = kw_list.strip().split()
         if kw_list != []:
@@ -203,16 +216,32 @@ def main():
     api = TweepyConfig(cur_config).tweepy_api()
 
     argparse_obj = validate_and_return_args()
-    tracking_filters = validate_file_and_return_tracking_filter_list(
-        argparse_obj)
-    print(
-        f"Tracking filter mode set to {argparse_obj.download_type} and filters are {tracking_filters}")
 
-    # Choose the appropriate download mode based on user arguments
-    if argparse_obj.download_type == 'keyword':
-        download_tweets_by_filters(api, track=tracking_filters)
-    elif argparse_obj.download_type == 'userid':
-        download_tweets_by_filters(api, follow=tracking_filters)
+    if (argparse_obj.track is None
+        and argparse_obj.follow is None
+            and argparse_obj.locations is None):
+        print("No filters files selected. Please add them")
+        return -1
+
+    track_filter = validate_file_and_rtn_filter_list(
+        argparse_obj.track)
+    follow_filter = validate_file_and_rtn_filter_list(
+        argparse_obj.follow)
+    location_filter = validate_file_and_rtn_filter_list(
+        argparse_obj.locations)
+
+    print("Active tracking filters are:")
+    if argparse_obj.track:
+        print(f"\tKeywords from {argparse_obj.track}")
+    if argparse_obj.follow:
+        print(f"\tUserids from {argparse_obj.follow}")
+    if argparse_obj.locations:
+        print(f"\tLocations from {argparse_obj.locations}")
+
+    download_tweets_by_filters(api,
+                               track=track_filter,
+                               follow=follow_filter,
+                               locations=location_filter)
 
 
 if __name__ == "__main__":
