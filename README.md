@@ -94,7 +94,27 @@ $ python download_tweets_data_to_mysql.py keyword inputs/keywords.txt
 $ python download_tweets_data_to_mysql.py userid inputs/userids.txt
 ```
 
+For more documentation: go to the [Twitter Streaming API documentation page](https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters)
+
 ### 2. To run the sentiment analysis on the downloaded tweets from the MySQL database
+
+##### Generating the wordcloud and sentiment analysis
+
+**Example:**
+
+After the tweet data has been loaded into the MySQL database, the `gen_tweets_sentiment_from_mysql.py` program can be executed to generated the cleaned tweet csv file, sentiment results, and a wordcloud of words based on frequency.
+
+```shell
+$ python gen_tweets_sentiment_from_mysql.py [filename]
+```
+
+**Note:** If the filename is not provided, the latest UNIX timestamps are used as filenames.
+
+**Sample wordcloud from tweets downloaded based on keywords 'batman' and 'joker'.**
+
+<p align='center'>
+<img src='img/batman_joker_tweets_word_cloud.jpg' />
+</p>
 
 ##### Cleaning the Tweet data
 
@@ -111,22 +131,6 @@ Preprocessing steps for Natural Language Processing
 5.  **Term Frequency-Inverse Document Frequency (TF-IDF)** Checking importance of words based on Frequency across main document or other multiple documents
 
 We pass our pre-processed text into the TextBlob class and run the `sentiment.polarity` method of the object to a get a sentiment scores between -1 and 1 that can be converted to integers -1, 0, or 1 signalling a negative, neutral, or positive sentiment respectively.
-
-##### Generating the wordcloud and sentiment analysis
-
-**Example:**
-
-After the tweet data has been loaded into the MySQL database, the `gen_tweets_sentiment_from_mysql.py` program can be executed to generated the cleaned tweet csv file, sentiment results, and a wordcloud of words based on frequency.
-
-```shell
-$ python gen_tweets_sentiment_from_mysql.py
-```
-
-**Sample wordcloud from tweets downloaded based on keywords 'batman' and 'joker'.**
-
-<p align='center'>
-<img src='img/batman_joker_tweets_word_cloud.jpg' />
-</p>
 
 ## ETL pipeline for sentiment analysis of Rotten Tomatoes Movie Reviews
 
