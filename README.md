@@ -18,7 +18,7 @@ $ source venv/bin/activate
 $ pip install -r requirements.txt
 ```
 
-## ETL pipeline for sentiment analysis of Twitter feeds based on keywords, userids or geolocation
+## ETL pipeline for sentiment analysis of live Twitter feeds based on keywords, userids or geolocation
 
 Download tweets with twitter api, load in an MySQL db, and analyze tweet sentiments all in an ETL pipeline.
 
