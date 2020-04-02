@@ -2,7 +2,6 @@ import re
 import os
 import argparse
 import pandas as pd
-from time import time
 import mysql.connector
 import matplotlib.pyplot as plt
 from mysql.connector import Error
@@ -129,11 +128,23 @@ def validate_and_return_args():
     parser = argparse.ArgumentParser(
         description="Generate csv file and word cloud image from Tweets in the mysql database")
 
-    parser.add_argument("filename",
+    parser.add_argument("-wc",
+                        '--wc_filename',
                         type=str,
+                        nargs='?',
                         action='store',
-                        default=f"{time()[:10]}",
-                        help="Name of csv/word cloud file")
+                        default=None,
+                        help="Name of word cloud file")
+    parser.add_argument('-csv',
+                        '--csv_filename',
+                        type=str,
+                        nargs='?',
+                        action='store',
+                        default=None,
+                        help="Name of csv file")
+    parser.add_argument('-sent',
+                        action='store_true',
+                        help="Sentiment Analysis Flag")
 
     return parser.parse_args()
 
@@ -151,18 +162,21 @@ def main():
     processed_tweets['sentiment'] = processed_tweets['clean_tweets'].apply(
         tweet_obj.generate_sentiment)
 
-    print("Percentage of Positive tweets {0:.2f}%".format(
-        (processed_tweets['sentiment'].value_counts()[1] / processed_tweets.shape[0]) * 100))
-    print("Percentage of Neutral tweets {0:.2f}%".format(
-        (processed_tweets['sentiment'].value_counts()[0] / processed_tweets.shape[0]) * 100))
-    print("Percentage of Negative tweets {0:.2f}%".format(
-        (processed_tweets['sentiment'].value_counts()[-1] / processed_tweets.shape[0]) * 100))
+    if argparse_obj.sent:
+        print("Percentage of Positive tweets {0:.2f}%".format(
+            (processed_tweets['sentiment'].value_counts()[1] / processed_tweets.shape[0]) * 100))
+        print("Percentage of Neutral tweets {0:.2f}%".format(
+            (processed_tweets['sentiment'].value_counts()[0] / processed_tweets.shape[0]) * 100))
+        print("Percentage of Negative tweets {0:.2f}%".format(
+            (processed_tweets['sentiment'].value_counts()[-1] / processed_tweets.shape[0]) * 100))
 
     # The names of the jpg and the csv files can be altered
-    tweet_obj.gen_word_cloud(processed_tweets,
-                             f"{argparse_obj.filename}_word_cloud.jpg")
-    tweet_obj.save_df_as_csv(processed_tweets,
-                             f"{argparse_obj.filename}_tweets.csv")
+    if argparse_obj.wc_filename:
+        tweet_obj.gen_word_cloud(processed_tweets,
+                                 f"{argparse_obj.word_cloud_filename}_word_cloud.jpg")
+    if argparse_obj.csv_filename:
+        tweet_obj.save_df_as_csv(processed_tweets,
+                                 f"{argparse_obj.csv_filename}_tweets.csv")
 
 
 if __name__ == "__main__":
