@@ -7,7 +7,22 @@
 -   [Twitter feed ETL sentiment analysis based on keyword search.](#data-pipeline-for-sentiment-analysis-of-twitter-feeds)
 -   [IMDB movie description sentiment analysis based on movie genre.](#etl-pipeline-for-analysis-of-imdb-movie-descriptions)
 
+<<<<<<< HEAD
 ## ETL pipeline for sentiment analysis of Twitter feeds based on keywords, userids or geolocation
+=======
+## General setup
+
+-   Make sure Python is installed and set up a Python virtualenv. Install all dependencies from `requirements.txt`.
+
+```shell
+$ pip install virtualenv
+$ virtualenv venv/bin/activate
+$ source venv/bin/activate
+$ pip install -r requirements.txt
+```
+
+## ETL pipeline for sentiment analysis of live Twitter feeds based on keywords, userids or geolocation
+>>>>>>> c2f89936361fd0a1afbd06d667476253ad56a9df
 
 Download tweets with twitter api, load in an MySQL db, and analyze tweet sentiments all in an ETL pipeline.
 
