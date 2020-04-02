@@ -7,17 +7,6 @@
 -   [Twitter feed ETL sentiment analysis based on keyword search.](#data-pipeline-for-sentiment-analysis-of-twitter-feeds)
 -   [IMDB movie description sentiment analysis based on movie genre.](#etl-pipeline-for-analysis-of-imdb-movie-descriptions)
 
-## General setup
-
--   Make sure Python is installed and set up a Python virtualenv. Install all dependencies from `requirements.txt`.
-
-```shell
-$ pip install virtualenv
-$ virtualenv venv/bin/activate
-$ source venv/bin/activate
-$ pip install -r requirements.txt
-```
-
 ## ETL pipeline for sentiment analysis of Twitter feeds based on keywords, userids or geolocation
 
 Download tweets with twitter api, load in an MySQL db, and analyze tweet sentiments all in an ETL pipeline.
@@ -30,7 +19,18 @@ Download tweets with twitter api, load in an MySQL db, and analyze tweet sentime
 
 ### Setup
 
--   Add the required `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`, `MYSQL_DATABASE`, `MYSQL_TABLE`, and `MYSQL_PASSWORD` to the `twitter_sent_analysis/twitter_configuration.ini` file. (**Warning: `DO NOT UPLOAD THIS CONFIGURATION FILE ONLINE`**)
+-   Make sure Python is installed and set up a Python virtualenv. Install all dependencies from `requirements.txt`.
+
+```shell
+$ pip install virtualenv
+$ virtualenv venv/bin/activate
+$ source venv/bin/activate
+$ pip install -r requirements.txt
+```
+
+-   Run `setup_configuration.py` to use a command prompt to enter all required configurations and generate a `twitter_configuration.ini` file.
+
+-   Or, manually add the required `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`, `MYSQL_DATABASE`, `MYSQL_TABLE`, and `MYSQL_PASSWORD` to the `twitter_sent_analysis/twitter_configuration.ini` file. (**Warning: `DO NOT UPLOAD THIS CONFIGURATION FILE ONLINE`**)
 
 -   Install MySQL server and set up a database instance to store the downloaded tweets. For example `CREATE DATABASE twitter_db;`
 
@@ -62,9 +62,31 @@ $ mysql -u root -p twitter_db < TWEETS_BY_KEYWORD_schema.sql;
 $ mysql -u root -p twitter_db < TWEETS_BY_USERID_schema.sql;
 ```
 
-### Run
+## Run
 
-### 1. To download latest tweets based on keyword or userid search
+### 1. To download latest tweets as zipped JSON files based on keyword, userid or geolocation
+
+Make sure the `Twitter` secret keys and tokens are set up in `twitter_configuration.ini`.
+
+From inside the `twitter_sent_analysis` directory, run:
+
+```shell
+$ python download_tweets_data_as_json.py [-FLAG] [FILENAME]
+```
+
+`-FLAG` can be set to `-t` for `keyword` search `-f` for `userid` search and `-l` for location search.
+
+The input files should be a files containing the search terms in each line seperated by newline chars. (i.e. see `inputs/keywords.txt`)
+
+**Example:**
+
+-   To download latest tweets based on keywords from `inputs/keywords.txt`:
+
+```shell
+$ python download_tweets_data_as_json.py -t inputs/keywords.txt
+```
+
+### 2. To download latest tweets into MySQL based on keyword, userid or geolocation
 
 Make sure the `MYSQL_TABLE` is set to the correct table for the `download_type`. i.e. For downloading using keyword filters, inside `twitter_configuration.ini`, set `TABLE` to `TWEETS_BY_KEYWORD` or the relevant table.
 
@@ -82,7 +104,7 @@ $ python download_tweets_data_to_mysql.py [-FLAG] [FILENAME]
 $ python download_tweets_data_to_mysql.py -h
 ```
 
-`-FLAG` can be set to `-t` for `keyword` searchm `-f` for `userid` search and `-l` for location search.
+`-FLAG` can be set to `-t` for `keyword` search `-f` for `userid` search and `-l` for location search.
 
 The input files should be a files containing the search terms in each line seperated by newline chars. (i.e. see `inputs/keywords.txt`)
 
@@ -114,19 +136,35 @@ $ python download_tweets_data_to_mysql.py -f inputs/userids.txt -t inputs/keywor
 
 For more documentation: go to the [Twitter Streaming API documentation page](https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters)
 
-### 2. To run the sentiment analysis on the downloaded tweets from the MySQL database
+### 3. Sentiment analysis on the downloaded tweets in the MySQL database
 
-##### Generating the wordcloud and sentiment analysis
+After the tweets have been loaded into the MySQL database, the `gen_tweets_sentiment_from_mysql.py` can generate a tweets csv file, sentiment results, and a wordcloud based on word-frequency.
 
-**Example:**
-
-After the tweet data has been loaded into the MySQL database, the `gen_tweets_sentiment_from_mysql.py` program can be executed to generated the cleaned tweet csv file, sentiment results, and a wordcloud of words based on frequency.
+#### Generating the sentiment analysis
 
 ```shell
-$ python gen_tweets_sentiment_from_mysql.py [filename]
+$ python gen_tweets_sentiment_from_mysql.py -sent
 ```
 
-**Note:** If the filename is not provided, the latest UNIX timestamps are used as filenames.
+#### Generating the csv tweet file
+
+```shell
+$ python gen_tweets_sentiment_from_mysql.py -csv [csv_filename]
+```
+
+#### Generating the word cloud
+
+```shell
+$ python gen_tweets_sentiment_from_mysql.py -wc [wc_filename]
+```
+
+**Note:** The flag options can be used together as well:
+
+To generate sentiment, the word cloud and the csv tweet file:
+
+```shell
+$ python gen_tweets_sentiment_from_mysql.py -wc [wc_filename] -csv [csv_filename] - sent
+```
 
 **Sample wordcloud from tweets downloaded based on keywords 'batman' and 'joker'.**
 
@@ -134,7 +172,7 @@ $ python gen_tweets_sentiment_from_mysql.py [filename]
 <img src='img/batman_joker_tweets_word_cloud.jpg' />
 </p>
 
-##### Cleaning the Tweet data
+#### Cleaning the Tweet data
 
 Preprocessing steps for Natural Language Processing
 
