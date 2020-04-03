@@ -65,6 +65,8 @@ $ mysql -u root -p twitter_db < TWEETS_BY_USERID_schema.sql;
 
 ## Run
 
+**IMPORTANT:** The MySQL Table names must be changed in `twitter_configuration.ini` to save data in different tables or generate sentiment.
+
 ### 1. To download latest tweets as zipped JSON files based on keyword, userid or geolocation
 
 Make sure the `Twitter` secret keys and tokens are set up in `twitter_configuration.ini`.
