@@ -1,5 +1,4 @@
 import os
-import sys
 import gzip
 import json
 import tweepy
@@ -9,8 +8,6 @@ from time import time
 from typing import List
 from dateutil import parser
 from twitter_config_loader import TwitterConfig
-from twitter_config_loader import print_error
-from twitter_config_loader import print_warning
 
 DEBUG = True
 
@@ -38,10 +35,12 @@ class TweetStreamListener(tweepy.StreamListener):
         self.tweet_download_limit = 10000000
         self.tweet_download_count = 0
 
-    def on_connect(self) -> None:
+    @staticmethod
+    def on_connect() -> None:
         print("Connected to the Twitter API now")
 
-    def on_status(self, status):
+    @staticmethod
+    def on_status(status):
         if not(status.retweeted_status):
             if DEBUG:
                 print(self.status)
@@ -59,7 +58,8 @@ class TweetStreamListener(tweepy.StreamListener):
                 "Personal Tweet access limit reached. Aborting now. [This can be altered]")
             return False
 
-    def on_error(self, status_code):
+    @staticmethod
+    def on_error(status_code):
         # returning False in on_error disconnects the stream
         if status_code == 420:
             print("Request rate limit reached")
@@ -73,20 +73,24 @@ class TweetStreamListener(tweepy.StreamListener):
 
 
 def download_tweets_by_filters(api,
-                               track: List[str] = [],
-                               follow: List[str] = [],
-                               locations: List[str] = [],
-                               languages: List[str] = ['en']):
+                               track: List[str] = None,
+                               follow: List[str] = None,
+                               locations: List[str] = None,
+                               languages: List[str] = None):
+    _track = track if track is not None else []
+    _follow = follow if follow is not None else []
+    _locations = locations if locations is not None else []
+    _languages = languages if languages is not None else ['en']
 
     customStreamListener = TweetStreamListener()
     customStream = tweepy.Stream(
         auth=api.auth, listener=customStreamListener)
 
     # To specify a particular twitter account i.e.25073877=realDonaldTrump
-    customStream.filter(track=track,
-                        follow=follow,
-                        locations=locations,
-                        languages=languages)
+    customStream.filter(track=_track,
+                        follow=_follow,
+                        locations=_locations,
+                        languages=_languages)
 
 
 def validate_and_return_args():
@@ -162,7 +166,8 @@ def main():
     download_tweets_by_filters(api,
                                track=track_filter,
                                follow=follow_filter,
-                               locations=location_filter)
+                               locations=location_filter,
+                               languages=['en'])
 
 
 if __name__ == "__main__":

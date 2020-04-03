@@ -1,4 +1,3 @@
-import re
 import os
 import argparse
 import pandas as pd
@@ -7,12 +6,11 @@ import matplotlib.pyplot as plt
 from mysql.connector import Error
 
 from textblob import TextBlob
-from wordcloud import WordCloud, STOPWORDS
+from wordcloud import WordCloud
 from twitter_config_loader import TwitterConfig
 from twitter_config_loader import print_error
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
 
 import nltk
 nltk.download('stopwords')
@@ -57,7 +55,8 @@ class TweetObject:
         mysql_con.close()
         return tweet_df
 
-    def preprocess_tweets(self, tweet_df):
+    @staticmethod
+    def preprocess_tweets(tweet_df):
         """ Take orginial tweets as df and normalize them
             by removing punctuation, stop words, hmtl, emoticons and
             convert uppercase to lowercase. Gen canonical form using
@@ -85,7 +84,8 @@ class TweetObject:
 
         return tweet_df
 
-    def generate_sentiment(self, tweet_text):
+    @staticmethod
+    def generate_sentiment(tweet_text):
         ''' Function takes in the tweet text
             and returns a sentiment polarity score
             -1, 0, or 1'''
@@ -98,7 +98,8 @@ class TweetObject:
         else:
             return -1  # Negative
 
-    def save_df_as_csv(self, tweet_df, csv_name="cleaned_tweets.csv"):
+    @staticmethod
+    def save_df_as_csv(tweet_df, csv_name="cleaned_tweets.csv"):
         try:
             os.makedirs("csv", exist_ok=True)
             tweet_df.to_csv(f'./csv/{csv_name}')
@@ -108,7 +109,8 @@ class TweetObject:
             print(e)
             print_error()
 
-    def gen_word_cloud(self, tweet_df, wordcloud_img_name="clean_tweets_word_cloud.jpg"):
+    @staticmethod
+    def gen_word_cloud(tweet_df, wordcloud_img_name="clean_tweets_word_cloud.jpg"):
         """ Take in a tweet_df and plot a WordCloud with matplotlib """
         plt.figure(figsize=(5, 6))
         tweet_wordcloud = WordCloud(
